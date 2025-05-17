@@ -1,0 +1,185 @@
+from zipfile import ZipFile
+import os
+
+# Create directory structure
+project_dir = "/mnt/data/DraculaToolkit"
+os.makedirs(project_dir, exist_ok=True)
+
+# Write the HTML file
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎃 Dracula Secret AI Toolkit - Eclipse Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #f8f8f2;
+      font-family: 'Fira Code', monospace;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    h1, h2 {
+      color: #bd93f9;
+    }
+    button {
+      background-color: #ff79c6;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px 0 0;
+      border-radius: 8px;
+    }
+    textarea, pre {
+      width: 100%;
+      background-color: #282a36;
+      color: #f8f8f2;
+      border: none;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    #report, #analysisScreen {
+      margin-top: 20px;
+    }
+    #analysisScreen {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧛‍♂️ Dracula Secret AI Scanner - Eclipse Edition</h1>
+    <p>Supercharged with AI and multi-scan modes. Portable. Expandable. Obsessed with secrets.</p>
+    <button onclick="runScan()">🧠 Run Enhanced AI Scan</button>
+    <button onclick="runQuickScan()">⚡ Quick Local Scan</button>
+    <button onclick="toggleAnalysis()">🔬 Show/Hide AI Analysis</button>
+    <button onclick="copyToClipboard()">📋 Copy Report</button>
+
+    <div id="report"></div>
+    <textarea id="logs" placeholder="Logs will appear here..."></textarea>
+
+    <div id="analysisScreen">
+      <h2>AI Deep Analysis</h2>
+      <pre id="aiOutput">🧛 Waiting for scan...</pre>
+    </div>
+  </div>
+
+  <script>
+    async function runScan() {
+      const logs = document.getElementById('logs');
+      const report = document.getElementById('report');
+      const aiOutput = document.getElementById('aiOutput');
+      logs.value = 'Scanning page with AI...';
+      const content = document.body.innerText;
+
+      const patterns = [
+        /access[_-]?token["']?\\s*[:=]\\s*["']?[a-z0-9\\-_]{20,}/ig,
+        /aws[_-]?secret[_-]?access[_-]?key["']?\\s*[:=]\\s*["']?[a-z0-9\\/+]{40,}/ig,
+        /api[_-]?key["']?\\s*[:=]\\s*["']?[a-z0-9\\-_]{20,}/ig,
+        /password["']?\\s*[:=]\\s*["']?.{6,}/ig
+      ];
+
+      let foundSecrets = [];
+      for (let pattern of patterns) {
+        const matches = content.match(pattern);
+        if (matches) foundSecrets.push(...matches);
+      }
+
+      logs.value = foundSecrets.length ? `Secrets found:\\n${foundSecrets.join('\\n')}` : 'No secrets detected.';
+      report.innerHTML = `<h2>Scan Report</h2><p>${foundSecrets.length} item(s) detected.</p><pre>${foundSecrets.join('\\n')}</pre>`;
+
+      if (foundSecrets.length > 0) {
+        aiOutput.textContent = 'Consulting Dracula AI...';
+        const explanation = await fetch(`https://api.openai.com/v1/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer YOUR_OPENAI_API_KEY',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "gpt-4",
+            messages: [
+              { role: "system", content: "You are a seasoned cybersecurity vampire analyst." },
+              { role: "user", content: `Explain the risk of these secrets: ${foundSecrets.join(', ')}` }
+            ]
+          })
+        });
+        const result = await explanation.json();
+        aiOutput.textContent = result.choices[0].message.content;
+      } else {
+        aiOutput.textContent = 'No risks found. The night is calm. 🌕';
+      }
+    }
+
+    function runQuickScan() {
+      const logs = document.getElementById('logs');
+      const report = document.getElementById('report');
+      const content = document.body.innerText;
+      const testWords = [/token/i, /secret/i, /api/i, /key/i, /password/i];
+
+      const quickFindings = testWords.filter(word => word.test(content)).map(w => w.source);
+
+      logs.value = quickFindings.length
+        ? `Quick scan: Suspicious keywords found:\\n${quickFindings.join(', ')}`
+        : 'Quick scan: No immediate concerns.';
+
+      report.innerHTML = `<h2>Quick Scan Report</h2><p>${quickFindings.length} keyword(s) found.</p><pre>${quickFindings.join('\\n')}</pre>`;
+    }
+
+    function toggleAnalysis() {
+      const screen = document.getElementById('analysisScreen');
+      screen.style.display = screen.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function copyToClipboard() {
+      const logs = document.getElementById('logs');
+      logs.select();
+      logs.setSelectionRange(0, 99999); // For mobile
+      document.execCommand("copy");
+      alert("🧛 Report copied to clipboard.");
+    }
+  </script>
+</body>
+</html>
+"""
+
+readme_content = """\
+Dracula Secret AI Toolkit - Eclipse Edition
+============================================
+
+INSTRUCTIONS:
+1. Double-click `index.html` to launch the toolkit in your browser.
+2. Press "Run Enhanced AI Scan" to scan the page using patterns.
+3. Use the analysis tools and report functions.
+4. For full AI response integration, replace `YOUR_OPENAI_API_KEY` with your actual OpenAI key in the script tag.
+
+To deploy on the web:
+- Upload this to GitHub Pages, Netlify, or any static hosting service.
+"""
+
+# Save files
+html_path = os.path.join(project_dir, "index.html")
+readme_path = os.path.join(project_dir, "README.txt")
+
+with open(html_path, "w") as f:
+    f.write(html_content)
+
+with open(readme_path, "w") as f:
+    f.write(readme_content)
+
+# Create zip file
+zip_path = "/mnt/data/DraculaToolkit.zip"
+with ZipFile(zip_path, "w") as zipf:
+    zipf.write(html_path, arcname="index.html")
+    zipf.write(readme_path, arcname="README.txt")
+
+zip_path
