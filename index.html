@@ -1,185 +1,329 @@
-from zipfile import ZipFile
-import os
-
-# Create directory structure
-project_dir = "/mnt/data/DraculaToolkit"
-os.makedirs(project_dir, exist_ok=True)
-
-# Write the HTML file
-html_content = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>🎃 Dracula Secret AI Toolkit - Eclipse Edition</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      background-color: #0d0d0d;
-      color: #f8f8f2;
-      font-family: 'Fira Code', monospace;
-      padding: 20px;
-    }
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-    h1, h2 {
-      color: #bd93f9;
-    }
-    button {
-      background-color: #ff79c6;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 10px 5px 0 0;
-      border-radius: 8px;
-    }
-    textarea, pre {
-      width: 100%;
-      background-color: #282a36;
-      color: #f8f8f2;
-      border: none;
-      padding: 10px;
-      font-size: 14px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    #report, #analysisScreen {
-      margin-top: 20px;
-    }
-    #analysisScreen {
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dracula AI Toolkit - Eclipse Edition</title>
+<style>
+  body {
+    background-color: #1a1a2e;
+    color: #e0e0f8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+  header {
+    background: linear-gradient(90deg, #3a0ca3, #720026);
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+    user-select: none;
+    color: #f8f0ff;
+    text-shadow: 0 0 5px #ff0055;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  textarea, input[type="text"] {
+    background: #222244;
+    border: none;
+    border-radius: 5px;
+    color: #ddd;
+    padding: 0.75rem;
+    font-size: 1rem;
+    resize: none;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+  }
+  textarea:focus, input[type="text"]:focus {
+    outline: 2px solid #ff0044;
+  }
+  #inputData {
+    height: 70vh;
+  }
+  #logs {
+    height: 70vh;
+  }
+  #brutePasswordInput {
+    width: auto;
+    max-width: 300px;
+  }
+  button {
+    background-color: #720026;
+    border: none;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    margin: 0.2rem 0.4rem 0.2rem 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #9f1239;
+  }
+  #controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 0.5rem;
+  }
+  #analysisSection {
+    background: #2a254b;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 1rem;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  #analysisSection.hidden {
+    display: none;
+  }
+  #aiOutput {
+    white-space: pre-wrap;
+    line-height: 1.3;
+  }
+  footer {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    color: #6666aa;
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧛‍♂️ Dracula Secret AI Scanner - Eclipse Edition</h1>
-    <p>Supercharged with AI and multi-scan modes. Portable. Expandable. Obsessed with secrets.</p>
-    <button onclick="runScan()">🧠 Run Enhanced AI Scan</button>
-    <button onclick="runQuickScan()">⚡ Quick Local Scan</button>
-    <button onclick="toggleAnalysis()">🔬 Show/Hide AI Analysis</button>
-    <button onclick="copyToClipboard()">📋 Copy Report</button>
 
-    <div id="report"></div>
-    <textarea id="logs" placeholder="Logs will appear here..."></textarea>
+<header>🦇 Dracula AI Toolkit - Eclipse Edition 🦇</header>
 
-    <div id="analysisScreen">
-      <h2>AI Deep Analysis</h2>
-      <pre id="aiOutput">🧛 Waiting for scan...</pre>
+<main>
+  <section style="flex: 1.2; display: flex; flex-direction: column;">
+    <label for="inputData">Paste your secret code, tokens, or dark texts below:</label>
+    <textarea id="inputData" placeholder="Insert your secrets here..."></textarea>
+
+    <div id="controls">
+      <button id="btnFullScan" title="Deep full secret scan">Run Full Secret Scan</button>
+      <button id="btnQuickScan" title="Quick keyword scan">Quick Keyword Scan</button>
+      <input type="text" id="brutePasswordInput" placeholder="Enter password to brute force" />
+      <button id="btnBruteForce" title="Brute force password test">Brute Force</button>
+      <button id="btnClearLogs" title="Clear all logs">Clear Logs</button>
+      <button id="btnCopyReport" title="Copy logs to clipboard">Copy Report</button>
+      <button id="btnToggleAnalysis" title="Show or hide AI Analysis panel">Toggle AI Analysis</button>
+      <button id="btnResetAll" title="Reset all fields and logs">Reset All</button>
     </div>
-  </div>
+  </section>
 
-  <script>
-    async function runScan() {
-      const logs = document.getElementById('logs');
-      const report = document.getElementById('report');
-      const aiOutput = document.getElementById('aiOutput');
-      logs.value = 'Scanning page with AI...';
-      const content = document.body.innerText;
+  <section style="flex: 1;">
+    <label for="logs">🧛 Logs & Findings:</label>
+    <textarea id="logs" readonly></textarea>
 
-      const patterns = [
-        /access[_-]?token["']?\\s*[:=]\\s*["']?[a-z0-9\\-_]{20,}/ig,
-        /aws[_-]?secret[_-]?access[_-]?key["']?\\s*[:=]\\s*["']?[a-z0-9\\/+]{40,}/ig,
-        /api[_-]?key["']?\\s*[:=]\\s*["']?[a-z0-9\\-_]{20,}/ig,
-        /password["']?\\s*[:=]\\s*["']?.{6,}/ig
-      ];
+    <div id="analysisSection" class="hidden">
+      <h3>🔮 AI Analysis</h3>
+      <div id="aiOutput">Awaiting your dark command...</div>
+    </div>
+  </section>
+</main>
 
-      let foundSecrets = [];
-      for (let pattern of patterns) {
-        const matches = content.match(pattern);
-        if (matches) foundSecrets.push(...matches);
-      }
+<footer>© 2025 Dracula AI Toolkit - By Your Loyal Servant</footer>
 
-      logs.value = foundSecrets.length ? `Secrets found:\\n${foundSecrets.join('\\n')}` : 'No secrets detected.';
-      report.innerHTML = `<h2>Scan Report</h2><p>${foundSecrets.length} item(s) detected.</p><pre>${foundSecrets.join('\\n')}</pre>`;
+<script>
+  // Elements
+  const inputData = document.getElementById('inputData');
+  const logs = document.getElementById('logs');
+  const brutePasswordInput = document.getElementById('brutePasswordInput');
+  const aiOutput = document.getElementById('aiOutput');
+  const analysisSection = document.getElementById('analysisSection');
 
-      if (foundSecrets.length > 0) {
-        aiOutput.textContent = 'Consulting Dracula AI...';
-        const explanation = await fetch(`https://api.openai.com/v1/chat/completions`, {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer YOUR_OPENAI_API_KEY',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: "gpt-4",
-            messages: [
-              { role: "system", content: "You are a seasoned cybersecurity vampire analyst." },
-              { role: "user", content: `Explain the risk of these secrets: ${foundSecrets.join(', ')}` }
-            ]
-          })
+  // Utility: Log message
+  function log(message) {
+    const timestamp = new Date().toLocaleTimeString();
+    logs.value += `[${timestamp}] ${message}\n`;
+    logs.scrollTop = logs.scrollHeight;
+  }
+
+  // Secret keywords to hunt - add more for your evil empire
+  const secretKeywords = [
+    'password', 'secret', 'token', 'api_key', 'auth', 'credentials',
+    'key', 'passwd', 'private', 'login', 'jwt', 'access_token',
+    'authorization', 'cookie', 'session', 'secret_key', 'env'
+  ];
+
+  // Full deep secret scan: search for keywords + suspicious patterns
+  function secretScan(text) {
+    log('🦇 Commencing deep secret scan...');
+    const lowerText = text.toLowerCase();
+    let foundSecrets = [];
+
+    // Keyword hunt
+    secretKeywords.forEach(keyword => {
+      let index = 0;
+      while ((index = lowerText.indexOf(keyword, index)) !== -1) {
+        foundSecrets.push({
+          keyword,
+          position: index,
+          snippet: text.substring(index, index + keyword.length + 30)
         });
-        const result = await explanation.json();
-        aiOutput.textContent = result.choices[0].message.content;
-      } else {
-        aiOutput.textContent = 'No risks found. The night is calm. 🌕';
+        index += keyword.length;
       }
+    });
+
+    // Regex for common secrets (simple examples)
+    const regexPatterns = [
+      /(?:secret|token|key)[\s:=]{1,3}['"]?([a-z0-9-_]{8,})['"]?/gi,
+      /api[_-]?key[\s:=]{1,3}['"]?([a-z0-9-_]{16,})['"]?/gi,
+      /password[\s:=]{1,3}['"]?([^\s'"]{6,})['"]?/gi,
+      /-----BEGIN (RSA|PRIVATE) KEY-----/gi
+    ];
+
+    regexPatterns.forEach(regex => {
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        foundSecrets.push({
+          keyword: 'Regex Secret',
+          position: match.index,
+          snippet: match[0].substring(0, 60)
+        });
+      }
+    });
+
+    if (foundSecrets.length === 0) {
+      log('🕸️ No obvious secrets found in this dark text.');
+      aiOutput.textContent = 'No secrets detected. The crypt remains undisturbed...';
+    } else {
+      log(`🩸 Secrets uncovered: ${foundSecrets.length}`);
+      let report = '';
+      foundSecrets.forEach((item, i) => {
+        report += `#${i + 1} Keyword: ${item.keyword}, Pos: ${item.position}\nSnippet: ${item.snippet}\n\n`;
+      });
+      aiOutput.textContent = report;
+    }
+  }
+
+  // Quick keyword scan - fast but shallow
+  function quickScan(text) {
+    log('🦇 Quick keyword sweep initiated...');
+    const lowerText = text.toLowerCase();
+    const found = secretKeywords.filter(kw => lowerText.includes(kw));
+    if (found.length === 0) {
+      log('🕸️ No keywords detected in quick scan.');
+      aiOutput.textContent = 'No keywords detected in quick scan.';
+    } else {
+      log(`🩸 Quick scan found keywords: ${found.join(', ')}`);
+      aiOutput.textContent = `Keywords found: ${found.join(', ')}`;
+    }
+  }
+
+  // Bruteforce password test (simple complexity check)
+  function bruteForce(password) {
+    log(`🦇 Brute force test on password: "${password}"`);
+
+    // Very simple score: length + variety of char types
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    let strength = '';
+    switch(score) {
+      case 5: strength = 'Very Strong'; break;
+      case 4: strength = 'Strong'; break;
+      case 3: strength = 'Moderate'; break;
+      case 2: strength = 'Weak'; break;
+      default: strength = 'Very Weak';
     }
 
-    function runQuickScan() {
-      const logs = document.getElementById('logs');
-      const report = document.getElementById('report');
-      const content = document.body.innerText;
-      const testWords = [/token/i, /secret/i, /api/i, /key/i, /password/i];
+    log(`🔑 Password strength: ${strength} (${score}/5)`);
+    aiOutput.textContent = `Password strength assessment:\n- Length >=8: ${password.length >=8}\n- Has uppercase: ${/[A-Z]/.test(password)}\n- Has lowercase: ${/[a-z]/.test(password)}\n- Has digit: ${/\d/.test(password)}\n- Has special char: ${/[^A-Za-z0-9]/.test(password)}\n\nOverall: ${strength}`;
+  }
 
-      const quickFindings = testWords.filter(word => word.test(content)).map(w => w.source);
+  // Copy logs to clipboard
+  function copyLogs() {
+    logs.select();
+    navigator.clipboard.writeText(logs.value)
+      .then(() => log('🧛 Logs copied to clipboard.'))
+      .catch(() => log('⚠️ Failed to copy logs.'));
+  }
 
-      logs.value = quickFindings.length
-        ? `Quick scan: Suspicious keywords found:\\n${quickFindings.join(', ')}`
-        : 'Quick scan: No immediate concerns.';
+  // Reset all fields
+  function resetAll() {
+    inputData.value = '';
+    logs.value = '';
+    brutePasswordInput.value = '';
+    aiOutput.textContent = 'Awaiting your dark command...';
+    analysisSection.classList.add('hidden');
+    log('🧙 The dark lair has been cleansed.');
+  }
 
-      report.innerHTML = `<h2>Quick Scan Report</h2><p>${quickFindings.length} keyword(s) found.</p><pre>${quickFindings.join('\\n')}</pre>`;
+  // Toggle AI analysis panel
+  function toggleAnalysis() {
+    if (analysisSection.classList.contains('hidden')) {
+      analysisSection.classList.remove('hidden');
+      log('🔮 AI Analysis panel opened.');
+    } else {
+      analysisSection.classList.add('hidden');
+      log('🔮 AI Analysis panel closed.');
     }
+  }
 
-    function toggleAnalysis() {
-      const screen = document.getElementById('analysisScreen');
-      screen.style.display = screen.style.display === 'none' ? 'block' : 'none';
+  // Event listeners
+  document.getElementById('btnFullScan').onclick = () => {
+    const text = inputData.value.trim();
+    if (!text) {
+      log('⚠️ Paste something to scan first!');
+      return;
     }
+    secretScan(text);
+  };
 
-    function copyToClipboard() {
-      const logs = document.getElementById('logs');
-      logs.select();
-      logs.setSelectionRange(0, 99999); // For mobile
-      document.execCommand("copy");
-      alert("🧛 Report copied to clipboard.");
+  document.getElementById('btnQuickScan').onclick = () => {
+    const text = inputData.value.trim();
+    if (!text) {
+      log('⚠️ Paste something to scan first!');
+      return;
     }
-  </script>
+    quickScan(text);
+  };
+
+  document.getElementById('btnBruteForce').onclick = () => {
+    const pwd = brutePasswordInput.value.trim();
+    if (!pwd) {
+      log('⚠️ Enter a password to brute force test.');
+      return;
+    }
+    bruteForce(pwd);
+  };
+
+  document.getElementById('btnClearLogs').onclick = () => {
+    logs.value = '';
+  };
+
+  document.getElementById('btnCopyReport').onclick = () => {
+    copyLogs();
+  };
+
+  document.getElementById('btnToggleAnalysis').onclick = () => {
+    toggleAnalysis();
+  };
+
+  document.getElementById('btnResetAll').onclick = () => {
+    resetAll();
+  };
+
+  // Initial log greeting
+  log('🦇 Welcome to Dracula AI Toolkit - Eclipse Edition. The night awaits your command...');
+</script>
+
 </body>
 </html>
-"""
 
-readme_content = """\
-Dracula Secret AI Toolkit - Eclipse Edition
-============================================
-
-INSTRUCTIONS:
-1. Double-click `index.html` to launch the toolkit in your browser.
-2. Press "Run Enhanced AI Scan" to scan the page using patterns.
-3. Use the analysis tools and report functions.
-4. For full AI response integration, replace `YOUR_OPENAI_API_KEY` with your actual OpenAI key in the script tag.
-
-To deploy on the web:
-- Upload this to GitHub Pages, Netlify, or any static hosting service.
-"""
-
-# Save files
-html_path = os.path.join(project_dir, "index.html")
-readme_path = os.path.join(project_dir, "README.txt")
-
-with open(html_path, "w") as f:
-    f.write(html_content)
-
-with open(readme_path, "w") as f:
-    f.write(readme_content)
-
-# Create zip file
-zip_path = "/mnt/data/DraculaToolkit.zip"
-with ZipFile(zip_path, "w") as zipf:
-    zipf.write(html_path, arcname="index.html")
-    zipf.write(readme_path, arcname="README.txt")
-
-zip_path
